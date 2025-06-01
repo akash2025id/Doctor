@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Appointment Booking with Doctor Sections</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111827;
+      color: white;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .form-container, .history-container, .admin-container, .login-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #1f2937;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+    }
+    input, select {
+      background-color: #374151;
+      color: white;
+    }
+    button {
+      background-color: #10b981;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #059669;
+    }
+    .appointment {
+      background: #374151;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .delete-btn {
+      margin-top: 5px;
+      background-color: #ef4444;
+    }
+    .delete-btn:hover {
+      background-color: #dc2626;
+    }
+    label {
+      margin-top: 10px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Appointment Booking</h1>
+
+  <!-- Booking Form -->
+  <div class="form-container">
+    <h2>Book Appointment</h2>
+    <input type="text" id="name" placeholder="Name" required />
+    
+    <select id="doctor">
+      <option value="">Select Doctor</option>
+    </select>
+    
+    <input type="text" id="address" placeholder="Address" required />
+    <input type="tel" id="phone" placeholder="Mobile Number" required />
+    <input type="date" id="date" required />
+    <input type="text" id="note" placeholder="Note" />
+    <button onclick="bookAppointment()">Book</button>
+    <p id="msg"></p>
+  </div>
+
+  <!-- User Appointment History -->
+  <div class="history-container">
+    <h2>Your Appointment History</h2>
+    <input type="tel" id="searchPhone" placeholder="Enter your phone number" />
+    <button onclick="fetchHistory()">Search</button>
+    <div id="history"></div>
+  </div>
+
+  <!-- Admin Login -->
+  <div class="login-container">
+    <h2>Admin Login</h2>
+    <input type="password" id="adminCode" placeholder="Enter Secret Code" />
+    <button onclick="loginAdmin()">Login</button>
+  </div>
+
+  <!-- Admin Panel -->
+  <div class="admin-container" style="display:none;">
+    <h2>Admin Panel (All Appointments & Doctor Management)</h2>
+
+    <!-- Doctor Section Management -->
+    <div style="margin-bottom: 20px;">
+      <h3>Add Doctor Category</h3>
+      <input type="text" id="newCategory" placeholder="New Category Name" />
+      <button onclick="addCategory()">Add Category</button>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <h3>Add Doctor</h3>
+      <select id="doctorCategorySelect">
+        <option value="">Select Category</option>
+      </select>
+      <input type="text" id="newDoctorName" placeholder="Doctor Name" />
+      <button onclick="addDoctor()">Add Doctor</button>
+    </div>
+
+    <!-- All Appointments -->
+    <h3>All Appointments</h3>
+    <div id="allAppointments"></div>
+  </div>
+
+  <script>
+    const adminSecret = 'abuhurira265#';
+    let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+    let doctorsByCategory = JSON.parse(localStorage.getItem('doctorsByCategory') || '{}');
+
+    // Save appointments to localStorage
+    function saveAppointments() {
+      localStorage.setItem('appointments', JSON.stringify(appointments));
+    }
+
+    // Save doctors to localStorage
+    function saveDoctors() {
+      localStorage.setItem('doctorsByCategory', JSON.stringify(doctorsByCategory));
+    }
+
+    // Populate doctor dropdown with categories and doctors
+    function populateDoctorDropdown() {
+      const select = document.getElementById('doctor');
+      select.innerHTML = '<option value="">Select Doctor</option>';
+      for (const category in doctorsByCategory) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = category;
+        doctorsByCategory[category].forEach(doc => {
+          const option = document.createElement('option');
+          option.value = doc;
+          option.textContent = doc;
+          optgroup.appendChild(option);
+        });
+        select.appendChild(optgroup);
+      }
+    }
+
+    // Populate admin doctor category select dropdown
+    function populateAdminCategorySelect() {
+      const select = document.getElementById('doctorCategorySelect');
+      select.innerHTML = '<option value="">Select Category</option>';
+      for (const category in doctorsByCategory) {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        select.appendChild(option);
+      }
+    }
+
+    // Book appointment
+    function bookAppointment() {
+      const name = document.getElementById('name').value.trim();
+      const doctor = document.getElementById('doctor').value;
+      const address = document.getElementById('address').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const date = document.getElementById('date').value;
+      const note = document.getElementById('note').value.trim();
+
+      if (!name || !doctor || !address || !phone || !date) {
+        document.getElementById('msg').innerText = 'Please fill in all required fields.';
+        return;
+      }
+
+      const newAppointment = { name, doctor, address, phone, date, note };
+      appointments.push(newAppointment);
+      saveAppointments();
+
+      document.getElementById('msg').innerText = 'Appointment booked successfully!';
+      document.getElementById('name').value = '';
+      document.getElementById('doctor').value = '';
+      document.getElementById('address').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('date').value = '';
+      document.getElementById('note').value = '';
+    }
+
+    // Fetch user appointment history by phone
+    function fetchHistory() {
+      const phone = document.getElementById('searchPhone').value.trim();
+      const history = document.getElementById('history');
+      history.innerHTML = '';
+
+      if (!phone) {
+        history.innerHTML = '<p>Please enter your phone number to see history.</p>';
+        return;
+      }
+
+      const filtered = appointments.filter(app => app.phone === phone);
+      if (filtered.length === 0) {
+        history.innerHTML = '<p>No appointments found.</p>';
+      } else {
+        filtered.forEach(app => {
+          const div = document.createElement('div');
+          div.className = 'appointment';
+          div.innerHTML = `<strong>Name:</strong> ${app.name}<br><strong>Doctor:</strong> ${app.doctor}<br><strong>Date:</strong> ${app.date}<br><strong>Note:</strong> ${app.note}`;
+          history.appendChild(div);
+        });
+      }
+    }
+
+    // Admin login
+    function loginAdmin() {
+      const code = document.getElementById('adminCode').value;
+      if (code === adminSecret) {
+        document.querySelector('.admin-container').style.display = 'block';
+        document.querySelector('.login-container').style.display = 'none';
+        showAllAppointments();
+        populateDoctorDropdown();
+        populateAdminCategorySelect();
+      } else {
+        alert('Incorrect secret code.');
+      }
+    }
+
+    // Show all appointments in admin panel
+    function showAllAppointments() {
+      const container = document.getElementById('allAppointments');
+      container.innerHTML = '';
+      if (appointments.length === 0) {
+        container.innerHTML = '<p>No appointments found.</p>';
+        return;
+      }
+      appointments.forEach((app, index) => {
+        const div = document.createElement('div');
+        div.className = 'appointment';
+        div.innerHTML = `<strong>Name:</strong> ${app.name}<br><strong>Doctor:</strong> ${app.doctor}<br><strong>Address:</strong> ${app.address}<br><strong>Phone:</strong> ${app.phone}<br><strong>Date:</strong> ${app.date}<br><strong>Note:</strong> ${app.note}`;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerText = 'Delete';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.onclick = () => {
+          if (confirm('Are you sure you want to delete this appointment?')) {
+            appointments.splice(index, 1);
+            saveAppointments();
+            showAllAppointments();
+          }
+        };
+
+        div.appendChild(deleteBtn);
+        container.appendChild(div);
+      });
+    }
+
+    // Add new doctor category
+    function addCategory() {
+      const newCategory = document.getElementById('newCategory').value.trim();
+      if (!newCategory) {
+        alert('Please enter category name');
+        return;
+      }
+      if (doctorsByCategory[newCategory]) {
+        alert('Category already exists');
+        return;
+      }
+      doctorsByCategory[newCategory] = [];
+      saveDoctors();
+      populateDoctorDropdown();
+      populateAdminCategorySelect();
+      document.getElementById('newCategory').value = '';
+      alert('Category added');
+    }
+
+    // Add new doctor under selected category
+    function addDoctor() {
+      const category = document.getElementById('doctorCategorySelect').value;
+      const doctorName = document.getElementById('newDoctorName').value.trim();
+      if (!category) {
+        alert('Please select a category');
+        return;
+      }
+      if (!doctorName) {
+        alert('Please enter doctor name');
+        return;
+      }
+      if (doctorsByCategory[category].includes(doctorName)) {
+        alert('Doctor already exists in this category');
+        return;
+      }
+      doctorsByCategory[category].push(doctorName);
+      saveDoctors();
+      populateDoctorDropdown();
+      populateAdminCategorySelect();
+      document.getElementById('newDoctorName').value = '';
+      alert('Doctor added');
+    }
+
+    // Initialize page on load
+    window.onload = () => {
+      populateDoctorDropdown();
+      populateAdminCategorySelect();
+    };
+  </script>
+</body>
+</html>
