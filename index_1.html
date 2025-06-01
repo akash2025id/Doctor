@@ -11,7 +11,17 @@
       color: white;
       padding: 20px;
     }
-    h1, h2 {
+    h4 {
+      text-align: center;
+      text-color: #ff4444;
+    }
+    h1 {
+      color: yellow;
+      text-align: center;
+      text-shadow: 0 0 15px cyan;
+    }
+    
+    h2 {
       text-align: center;
     }
     .form-container, .history-container, .admin-container, .login-container {
@@ -60,43 +70,51 @@
   </style>
 </head>
 <body>
-  <h1>Appointment Booking</h1>
+  <h1>বুশরা হাসপাতাল সাতক্ষীরা, সদর সাতক্ষীরা।</h1>
+  
+<div>
+  <h4>
+    যোগাযোগ: 
+    <a href="tel:+8801966061084" style="color: #0000FF; text-decoration: underline;">01966061084</a>
+  </h4>
+</div>
+ 
 
   <!-- Booking Form -->
   <div class="form-container">
-    <h2>Book Appointment</h2>
+    <h2>ডাক্তার দেখাতে সিরিয়াল দিন</h2>
     <input type="text" id="name" placeholder="Name" required />
     
     <select id="doctor">
-      <option value="">Select Doctor</option>
+      <option value="">ডাক্তার বেঁছে নিন..</option>
     </select>
     
-    <input type="text" id="address" placeholder="Address" required />
-    <input type="tel" id="phone" placeholder="Mobile Number" required />
+    <input type="text" id="address" placeholder="আপনার ঠিকানা লিখুন এখানে..." required />
+    <input type="tel" id="phone" placeholder="আপনার নাম্বার লিখুন এখানে..." required />
     <input type="date" id="date" required />
     <input type="text" id="note" placeholder="Note" />
-    <button onclick="bookAppointment()">Book</button>
+    <button onclick="bookAppointment()">এখানে চাপ দিন...</button>
     <p id="msg"></p>
   </div>
 
   <!-- User Appointment History -->
   <div class="history-container">
-    <h2>Your Appointment History</h2>
-    <input type="tel" id="searchPhone" placeholder="Enter your phone number" />
-    <button onclick="fetchHistory()">Search</button>
+    <h2>নাম্বার দিয়ে আপনার হিস্টোরি খুজুন</h2>
+    <input type="tel" id="searchPhone" placeholder="এখানে নাম্বার দিন.." />
+    <button onclick="fetchHistory()">খুঁজুন...</button>
     <div id="history"></div>
   </div>
 
   <!-- Admin Login -->
   <div class="login-container">
-    <h2>Admin Login</h2>
+    <h2>..এখানে কোনো কাজ নেই আপনার..</h2>
     <input type="password" id="adminCode" placeholder="Enter Secret Code" />
     <button onclick="loginAdmin()">Login</button>
   </div>
 
   <!-- Admin Panel -->
   <div class="admin-container" style="display:none;">
-    <h2>Admin Panel (All Appointments & Doctor Management)</h2>
+    <h2>Admin Panel</h2>
 
     <!-- Doctor Section Management -->
     <div style="margin-bottom: 20px;">
